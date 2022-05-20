@@ -1,0 +1,18 @@
+\section{Introduction}
+\label{sec:intro}
+Fuzz testing is an automated process that tests a program by generating random inputs. It is useful for testing language interpreters such as PHP and JavaScript. These language interpreters accept input that complies with a set of grammar rules usually defined as context-free grammar (CFG). Grammar-unaware fuzzers are inefficient at testing language interpreters. The mutation operators they use, such as random bit flipping, often generate syntactically invalid inputs that fail at the parsing stage. Therefore, to discover bugs that have semantic meanings, it is desirable to have grammar-aware fuzzers that generate test inputs that are syntactically correct.
+
+Nautilus and Gramatron are two popular grammar-aware fuzzers \cite{srivastava_payer_2021, aschermann_frassetto_holz_jauernig_sadeghi_teuchert_2019}. Both tools are able to generate syntactically valid inputs, but internally, the inputs' structures are represented differently. Nautilus stores its generated inputs as parse trees while Gramatron first converts the input grammar into a finite state automaton (FSA) and stores the inputs as automaton walks. These different structures give the two tools different characteristics when it comes to mutating inputs. The tree-based tool Nautilus performs localized mutations that are more small scaled. The automaton-based Gramatron performs aggressive mutations that lead to more complex changes. 
+
+In this capstone project, I present a combination of Gramatron and Nautilus in the hope that they can leverage the benefits of both localized and aggressive mutations. I first (1) evaluated the performance of these tools on 7 fuzzing targets to verify that each tool has its advantages. I also (2) pipelined the two tools and evaluated its performance to see if there's an improvement in fuzzing efficiency. Finally, I (3) implemented an automaton parser for Gramatron so that I can integrate these tools inside AFLplusplus and ran experiments to see if the combination of Nautilus and Gramatron can lead to faster discovery of crashing inputs. 
+
+
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:
+
+%  LocalWords:  biometrics cryptographic parallelized lossy

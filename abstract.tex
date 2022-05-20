@@ -1,0 +1,13 @@
+\begin{abstract}
+  % TODO
+%   Abstractly this is an ACM CCS Template. Keep it short and simple, highlight
+%   the main problem and give your punch line contributions. For example,
+
+%   Setting up the ACM CCS template is non-trivial. This is a document to help you
+%   get started with ACM CCS template over Overleaf quickly. I also provide some
+%   macros in the \texttt{defs.tex} file, that can be helpful for new writers.
+Fuzz test is a useful tool for testing language interpreters such as PHP and JavaScript. However, most fuzzers are grammar-unaware. These fuzzers suffer from producing syntactically incorrect inputs that cannot get past the parsing stage, leaving most of the interpreter program untested. Gramatron and Nautilus are two grammar aware fuzzers that run on top of American Fuzzy Lop (AFL). Gramatron and Nautilus keep different internal representations of the their inputs' syntactic structures. Gramatron represents the inputs it generates as automaton walks, and it mutates its inputs more aggressively. Nautilus represents its inputs as parse trees and conducts more localized changes during mutation. This project attempts to combine these two fuzzers and test if these two different styles of mutation can lead to more efficient fuzzing.
+
+In this project, the two fuzzers are combined in two ways. The pipeline approach runs Gramatron and Nautilus in sequence with two fuzzing sessions while the alternative approach integrates them inside AFLplusplus and enables the two tools to run in turn. The results show that for some fuzz targets, the combined approach can lead to faster crashing input discovery than one of the fuzzers, but it fails to outperform both fuzzers at the same time across all experiments. The project shows some promise of combining Gramatron and Nautilus, but more work needs to be done to improve this approach's effectiveness.
+
+\end{abstract}

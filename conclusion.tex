@@ -1,0 +1,13 @@
+\section{Conclusion}
+\label{sec:conclusion}
+This project attempts to combine two popular grammar aware fuzzers, Gramatron and Nautilus, to find bugs faster. From the benchmark performance, it can be observed that Gramatron and Nautilus each have their advantages when fuzzing different targets. When the two tools are run in a pipelined fashion, it results in a better performance than running either Gramatron and Nautilus alone on PHP-1, mruby-1, mruby-2 and JS-4. However, it fails to perform better than both fuzzers on any of the targets in the experiment and it is outperformed by both fuzzers when fuzzing PHP-2, JS-1 and JS-3. The performance of the pipeline approach can be affected negatively due to the overhead of starting AFLplusplus and a non-optimal configuration of Gramatron's runtime, but it also benefits from both the localized mutator and aggressive changes provided by the two tools. The performance of integrating Gramatron and Nautilus inside AFLplusplus is on par with the pipeline approach. It offers some advantage when either Gramatron or Nautilus has a significant advantage over the other on some targets but is also sometimes worse than running both fuzzers individually. Overall, the performance of combining Gramatron and Nautilus fails to meet the expectation of producing a more efficient fuzzer. However, it is worth exploring in the future how the automaton parser can be accelerated, and how the two mutators can be scheduled inside AFLplusplus better for faster discovery of bugs. The source code of this project can be found in \url{https://github.com/yihellen/AFLplusplus/tree/add-automaton-parser}.
+
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:
+
+

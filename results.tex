@@ -1,0 +1,114 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Evaluation}
+\label{sec:eval}
+My evaluation answers whether running the aggressive mutation by Gramatron and the localized search by Nautilus together can generate crashing inputs faster. I used seven different fuzz targets for this evaluation, JS-1, JS-3, JS-4, mruby-1, mruby-2,  PHP-1 and PHP-2 as in \cite{srivastava_payer_2021}. The numbers indicate the different buggy versions of the language interpreter. Some versions have more complex bugs while others have simpler bugs. The complexity of the bugs shown in the third column of Table \ref{fuzz-targets} are gauged by the minimum number of branching rules in the language's CFG to generate a proof of concept crashing input. Table \ref{fuzz-targets} contains more information about the fuzz targets.
+\begin{table}[h]
+\caption{Fuzz Targets}
+\centering
+\begin{tabular}{lll}
+\hline
+Fuzz Target ID & Bug Type             & \begin{tabular}[c]{@{}l@{}}Complexity\\ (Branching Rules)\end{tabular} \\ \hline
+PHP-1          & Segmentation Fault   & 15 (Simple)                                                                                                          \\
+PHP-2          & Division by Zero     & 15 (Simple)                                                                                                          \\
+mruby-1        & Use-after-free       & 27 (Complex)                                                                                                         \\
+mruby-2        & Segmentation Fault   & 8 (Simple)                                                                                                           \\
+JS-1           & Heap buffer overflow & 26 (Complex)                                                                                                         \\
+JS-3           & Failed assertion     & 12 (Simple)                                                                                                        \\ 
+JS-4 & Floating point error & 12 (Simple)
+                                \\
+\hline
+
+\end{tabular}\label{fuzz-targets}
+\end{table}
+The efficiency of the different mutator tools are evaluated by the time it takes to generate the first crashing input.
+
+\subsection{Benchmark Performance}
+To compare if the combination of Gramatron and Nautilus results in an improvement in performance, we need to first have a benchmark performance to compare with. I have run Gramatron and Nautilus on the seven fuzz targets. Each target is fuzzed five times for a fixed amount of time budget. The time budget is 7200 seconds for complex bugs and 1800 seconds for simple bugs. A fuzzing campaign is considered successful if it generates a crashing input within the time budget. 
+
+% Please add the following required packages to your document preamble:
+% \usepackage{multirow}
+% \usepackage[normalem]{ulem}
+% \useunder{\uline}{\ul}{}
+\begin{table*}[]
+\centering
+\caption{Benchmark Performance}
+\begin{tabular}{llllllll}
+\hline
+\multirow{2}{*}{Fuzz Target ID} & \multirow{2}{*}{Time Budget (s)} & \multicolumn{2}{l}{Successful Campaigns} & \multicolumn{2}{l}{Median Time (s)} & \multicolumn{2}{l}{Average Time (s)} \\
+                                &                                  & Gramatron           & Nautilus           & Gramatron         & Nautilus        & Gramatron         & Nautilus         \\ \hline
+PHP-1                           & 1800                             & 5/5                 & 2/5                & 384               & 1192            & 340               & 1192             \\
+PHP-2                           & 1800                             & 5/5                 & 5/5                & 61                & 73              & 67                & 136              \\
+mruby-1                         & 7200                             & 4/5                 & 3/5                & 4596              & 2769            & 4121              & 2773             \\
+mruby-2                         & 1800                             & 5/5                 & 2/5                & 223               & 762             & 317               & 762              \\
+JS-1                            & 7200                             & 5/5                 & 5/5                & 1747              & 729             & 2400              & 784              \\
+JS-3                            & 1800                             & 5/5                 & 5/5                & 44                & 34              & 82                & 29               \\
+JS-4                            & 1800                             & 5/5                 & 5/5                & 13                & 273             & 35                & 233              \\ \hline
+\end{tabular}
+\label{tab:benchmark}
+\end{table*}
+Table \ref{tab:benchmark} shows the benchmark result run on both tools. The benchmark result shows that neither tool outperforms the other in all seven fuzz targets. Gramatron is better in terms of reliability since it only has one failed fuzzing campaign whereas Nautilus has 8 in total. Gramatron is able to produce a crashing input faster than Nautilus when fuzzing PHP-1, PHP-2, mruby-2, and JS-4 while Nautilus performs better when fuzzing mruby-1, JS-1 and JS-3. This result suggests that one fuzzer doesn't always outperform the other and shows promise that combining the two might lead to a faster generation of crashing inputs.
+
+\subsection{Tool Pipeline Performance}
+The performance of pipelining both Gramatron and Nautilus is shown Table \ref{tab:pipeline}. For each fuzz target, the runtime for Gramatron is fixed as shown in column 2 in the table. This runtime is determined heuristically by observing data from Table \ref{tab:benchmark}. It should be short enough so that there is a chance that the pipeline method can produce a crashing input sooner than running either fuzzer alone. It should also be long enough because otherwise most of the fuzzing work would fall on Nautilus. After running Gramatron, Nautilus is then given the same time budgets as listed in Table \ref{tab:benchmark}. Sometimes the crashing input would be found by Gramatron before Nautilus is run. The number of this occurrence is written in column 4 of Table \ref{tab:pipeline}. The total runtime is the time from the start of the fuzzing campaign to the time when the first crashing input is produced, which can happen either before or after Nautilus starts to run. 
+% Please add the following required packages to your document preamble:
+% \usepackage[normalem]{ulem}
+% \useunder{\uline}{\ul}{}
+\begin{table*}[h]
+\caption{Tool Pipelining Performance}
+\centering
+\begin{tabular}{llllll}
+\hline
+Fuzz Target ID & Gramatron Runtime (s) & Successful Campaign & Crash in Gramatron & Median Time to Crash in Nautilus & Total Median Time \\ \hline
+PHP-1          & 300                   & 2/5                 & 1/5                & 875                              & 826               \\
+PHP-2          & 30                    & 5/5                 & 1/5                & 274                              & 304               \\
+mruby-1        & 1500                  & 5/5                 & 1/5                & 1941                             & 3188              \\
+mruby-2        & 200                   & 4/5                 & 1/5                & 875                              & 1020              \\
+JS-1           & 600                   & 5/5                 & 0/5                & 1260                             & 1860              \\
+JS-3           & 30                    & 5/5                 & 1/5                & 125                              & 155               \\
+JS-4           & 30                    & 5/5                 & 2/5                & 56                               & 46                \\ \hline
+\end{tabular}
+\label{tab:pipeline}
+\end{table*}
+
+% PHP-1: pipelined approach runtime sits in between Gramatron and Nautilus, however successful campaign not good (a lot worse than Gramatron and same with Nautilus). Gramatron not run long enough and Nautilus makes it difficult to find a crashing input within the time budget 
+% PHP-2: median time a lot worse than either Gramatron or Nautilus
+% mruby-1: median fuzz time better than Gramatron but worse than Nautilus, however provides more stability because all fuzzing campaigns are successful
+% mruby-2: median fuzz time median time a lot worse than either Gramatron or Nautilus. Nautilus fuzzed a lot longer than Gramatron. but provided improved stability over running Nautilus alone
+% JS-1: median time slightly worse than Gramatron but better in Nautilus
+% JS-3: median time much worse than either mutator
+% JS-4: median time improved because of running Gramatron.
+The pipeline approach performs worse than both Gramatron and Nautilus when fuzzing PHP-2, JS-1 and JS-3. PHP-2 and JS-3 are fuzz targets with simple bugs that only take both fuzzers a few seconds or minutes to generate a crashing target, therefore it is possible that the overhead of pipelining makes the fuzz time longer. In JS-1, the pipeline approach is not outperformed by Gramatron by much, and Nautilus performs a lot worse with the seeds produced by Gramatron than with randomly generated seeds. From Table \ref{tab:benchmark}, we can see that it takes Gramatron almost 2.4 times as long to produce a crashing input than Nautilus. % TODO: the paper provides an explanation
+According to \cite{srivastava_payer_2021}, all of the branching rules essential to producing a crashing input for JS-1 are localized within a specific area of the grammar, therefore Gramatron's outputs make it more difficult to produce the crashing input for Nautilus. This makes running Nautilus alone the best way to fuzz JS-1.
+
+The pipeline approach outperforms Nautilus when fuzzing JS-4. Table \ref{tab:benchmark} shows that the median time it takes Nautilus to produce a crashing input is more than 20 times as long as Gramatron, which suggests that Gramatron is better suited to fuzz JS-4. The seeds produced by Gramatron helps Nautilus find bugs easier than with random seeds. The improvement from running the pipeline of the two tools comes mostly from running Gramatron. The pipelined approach outperforms Nautilus in terms of median time when fuzzing PHP-1, but it's just as unstable and is outperformed by Gramatron by a large margin. Table \ref{tab:benchmark} shows that Gramatron is much better at fuzzing PHP-1 than Nautilus, however the effect of running Gramatron is limited in the pipeline approach. This could be because the fixed runtime designated to Gramatron is too short. When fuzzing mruby-2, the median time to find a crashing input with pipeline approach is longer than Gramatron and Nautilus, but it provides more stability compared to Nautilus.
+
+The pipeline approach outperforms Gramatron and is only slightly worse than Nautilus when fuzzing mruby-1. Table \ref{tab:benchmark} shows that Nautilus is better at fuzzing mruby-1 than Gramatron. However, Table \ref{tab:pipeline} shows that Nautilus benefits from seeds generated Gramatron. Although Nautilus is better than the pipeline approach in terms of median time to reach fuzzing input, the pipeline provides more stability than Gramatron and Nautilus when fuzzing mruby-1 since it has succeeded in all fuzzing campaigns.
+
+In general, the pipeline approach sometimes lead to longer median time to both fuzzers, but in some cases it can also outperform one of the two fuzzers and offer better successful campaign rate. It is worth noting that the pipeline approach's performance relies on the runtime allotted to Gramatron. Under different configurations the performance results might change. 
+\subsection{Gramatron and Nautilus Integration inside AFLplusplus Performance}
+% Please add the following required packages to your document preamble:
+% \usepackage[normalem]{ulem}
+% \useunder{\uline}{\ul}{}
+The performance of using Gramatron and Nautilus as two custom mutators inside AFLplusplus is shown in Table \ref{tab:two-mutator-AFL} \footnote{This part of the evaluation is only done on four fuzz targets because of time constraint of this project}. 
+\begin{table*}[]
+\caption{Performance of combining two custom mutators inside AFLplusplus}
+\begin{tabular}{lllll}
+\hline
+Fuzz Target ID & Time Budget (s) & Successful Campaigns & Median Time (s) & Average Time (s) \\ \hline
+mruby-1        & 7200            & 4/5                  & 4758            & 4375             \\
+mruby-2        & 1800            & 3/5                  & 1724            & 1213             \\
+JS-1           & 7200            & 5/5                  & 1535            & 1322             \\
+JS-4           & 1800            & 5/5                  & 81              & 146              \\ \hline
+\end{tabular}\label{tab:two-mutator-AFL}
+\end{table*}
+
+For mruby-1, running both Gramatron and Nautilus alternately in one AFLplusplus session leads to a slower discovery of a crashing input compared to the pipeline approach. It is also worse in terms of median time to crash than both Gramatron and Nautilus, but is slightly more stable than Nautilus in terms of successful campaign rate. For mruby-2, running the alternate approach produces the slowest result. It takes the longest time to crash, and although it has a higher successful campaign rate than Nautilus, it is still less stable than Gramatron. For JS-1, the alternate approach outperforms Gramatron and the pipeline approach but legs behind Nautilus. For JS-4, the alternate approach outperforms Nautilus but not Gramatron or the pipeline approach.
+
+Overall, the alternate approach is often outperformed by the pipeline approach, and although it can sometimes lead to faster crash input discovery than one of the tools, it's always worse than the other at the same time. This unsatisfying result might be caused by the following issues.
+\begin{enumerate}
+    \item The overhead of parsing inputs into automaton walks is big.
+    \item A smaller pool of initial seeds is used to keep the size of the queue reasonable.
+    \item The pipeline approach allows Gramatron to generate a crashing input before Nautilus is run. Therefore the pipeline approach can make the best use of Gramatron when it can produce a better performance than Nautilus. The alternate approach doesn't have this advantage because the two fuzzers are run in turn.
+\end{enumerate}
+
+
